@@ -24,42 +24,51 @@ def ripemd160(x):
 
 
 r = 0
-cores=6
-
+cores=16
 
 def seek(r, df_handler):
 	global num_threads
 	LOG_EVERY_N = 1000
 	start_time = dt.datetime.today().timestamp()
 	i = 0
+	#gen=''
 	print("Core " + str(r) +":  Searching Private Key..")
-	while True:
-		i=i+1
-		# generate private key , uncompressed WIF starts with "5"
-		priv_key = os.urandom(32)
-		fullkey = '80' + binascii.hexlify(priv_key).decode()
-		sha256a = hashlib.sha256(binascii.unhexlify(fullkey)).hexdigest()
-		sha256b = hashlib.sha256(binascii.unhexlify(sha256a)).hexdigest()
-		WIF = base58.b58encode(binascii.unhexlify(fullkey+sha256b[:8]))
+	filename = 'bit.txt'
+	with open(filename) as b:
+		while True:
+			i=i+1
+			# generate private key , uncompressed WIF starts with "5"
+			priv_key = os.urandom(32)
+			fullkey = '80' + binascii.hexlify(priv_key).decode()
+			sha256a = hashlib.sha256(binascii.unhexlify(fullkey)).hexdigest()
+			sha256b = hashlib.sha256(binascii.unhexlify(sha256a)).hexdigest()
+			WIF = base58.b58encode(binascii.unhexlify(fullkey+sha256b[:8]))
 
-		# get public key , uncompressed address starts with "1"
-		sk = ecdsa.SigningKey.from_string(priv_key, curve=ecdsa.SECP256k1)
-		vk = sk.get_verifying_key()
-		publ_key = '04' + binascii.hexlify(vk.to_string()).decode()
-		hash160 = ripemd160(hashlib.sha256(binascii.unhexlify(publ_key)).digest()).digest()
-		publ_addr_a = b"\x00" + hash160
-		checksum = hashlib.sha256(hashlib.sha256(publ_addr_a).digest()).digest()[:4]
-		publ_addr_b = base58.b58encode(publ_addr_a + checksum)
-		priv = WIF.decode()
-		pub = publ_addr_b.decode()
-		time_diff = dt.datetime.today().timestamp() - start_time
-		if (i % LOG_EVERY_N) == 0:
-			print('Core :'+str(r)+" K/s = "+ str(i / time_diff))
-		#print ('Worker '+str(r)+':'+ str(i) + '.-  # '+pub + ' # -------- # '+ priv+' # ')
-		pub = pub + '\n'
-		filename = 'bit.txt'
-		with open(filename) as f:
-			for line in f:
+			# get public key , uncompressed address starts with "1"
+			sk = ecdsa.SigningKey.from_string(priv_key, curve=ecdsa.SECP256k1)
+			vk = sk.get_verifying_key()
+			publ_key = '04' + binascii.hexlify(vk.to_string()).decode()
+			hash160 = ripemd160(hashlib.sha256(binascii.unhexlify(publ_key)).digest()).digest()
+			publ_addr_a = b"\x00" + hash160
+			checksum = hashlib.sha256(hashlib.sha256(publ_addr_a).digest()).digest()[:4]
+			publ_addr_b = base58.b58encode(publ_addr_a + checksum)
+			priv = WIF.decode()
+			pub = publ_addr_b.decode()
+			time_diff = dt.datetime.today().timestamp() - start_time
+			if (i % LOG_EVERY_N) == 0:
+				print('Core '+str(r)+":	"+ str(i / time_diff)+" K/s")
+				#with open('gen.txt','a') as f:
+				#	f.write(gen)
+				#	f.close()
+			#print ('Worker '+str(r)+':'+ str(i) + '.-  # '+pub + ' # -------- # '+ priv+' # ')
+			pub = pub + '\n'
+			bit=b
+			for line in bit.readlines():
+				print('line')
+				if '12ToPnrrHpWmr6qGBVKUmYXaSsFrQV2bFH' in line:
+					print(True)
+				if '1E38XQRdXVhafXoAXwSZyoxPQ7R5HtmfrW' in line:
+					print(True)
 				if pub in line:
 					msg = "\nPublic: " + str(pub) + " ---- Private: " + str(priv) + "YEI"
 					text = msg
@@ -74,7 +83,7 @@ def seek(r, df_handler):
 					print(text)
 					with open('Wallets.txt','a') as f:
 						f.write(priv)
-						f.write('     ')
+						f.write('	')
 						f.write(pub)
 						f.write('\n')
 						f.close()
@@ -82,6 +91,7 @@ def seek(r, df_handler):
 					print ('WINNER WINNER CHICKEN DINNER!!! ---- ' +dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), pub, priv)
 					break
 					
+			#gen +=priv+'	'+pub+'\n'
 
 
 
